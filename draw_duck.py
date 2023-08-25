@@ -79,6 +79,7 @@ def run(protocol: protocol_api.ProtocolContext):
 		### Red
 		red_ink_total = 540.
 		red_asp_vol = 180.
+		pipette.pick_up_tip()
 		while red_ink_total > 0:
 			pipette.aspirate( red_asp_vol, palette[inkwells['red']] )
 			pipette.dispense( red_asp_vol, palette[inkwells['orange']] )

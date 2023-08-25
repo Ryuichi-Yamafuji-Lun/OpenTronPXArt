@@ -47,12 +47,6 @@ def run(protocol: protocol_api.ProtocolContext):
 
 			pipette.dispense( disp_vol, canvas[well] )
 			residual_vol -= disp_vol
-	
-	# Mix
-	def mix(part, time, amount):
-		for well in wells[part]:
-			pipette.mix(time, amount, canvas[well])
-		pipette.drop_tip()
 
 	# Yellow ink
 	def yellow_ink():
@@ -71,15 +65,31 @@ def run(protocol: protocol_api.ProtocolContext):
 		pipette.pick_up_tip()
 		yellow_ink_total = 360. - residual_vol
 		## Create Orange
+		### Yellow
+		pipette.dispense( residual_vol, palette[inkwells['orange']])
+		residual_vol = 0.
+		yellow_asp_vol = 70.
+		while yellow_ink_total > 0:
+			pipette.aspirate( yellow_asp_vol, palette[inkwells['yellow']] )
+			pipette.dispense( yellow_asp_vol, palette[inkwells['orange']] )
+			yellow_ink_total -= yellow_asp_vol
 
+		pipette.drop_tip()
 
+		### Red
 		red_ink_total = 540.
+		red_asp_vol = 180.
+		while red_ink_total > 0:
+			pipette.aspirate( red_asp_vol, palette[inkwells['red']] )
+			pipette.dispense( red_asp_vol, palette[inkwells['orange']] )
+			red_ink_total -= red_asp_vol
+
 		## Eye: red
 		disp_vol = 50
 		fill('eyes', 'red', disp_vol, residual_vol)
 
 		## Mix Master
-		
+		pipette.mix( 3, 200, palette[inkwells['orange']])
 
 		## Beak
 		disp_vol = 150.
@@ -115,8 +125,15 @@ def run(protocol: protocol_api.ProtocolContext):
 		fill('eyes', 'blue', disp_vol, residual_vol)
 
 		## Mix
-		mix('eye', 2, 120)
+		for well in wells['eyes']:
+			pipette.mix(2, 120, canvas[well])
+		pipette.drop_tip()
 
 		## End
 		pipette.drop_tip()
+	
+	# Main
+	yellow_ink()
+	orange_ink()
+	black_ink()
 	

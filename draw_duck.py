@@ -90,7 +90,7 @@ def run(protocol: protocol_api.ProtocolContext):
 		fill('eyes', 'red', disp_vol, residual_vol)
 
 		## Mix Master
-		pipette.mix( 3, 200, palette[inkwells['orange']])
+		pipette.mix( 4, 150, palette[inkwells['orange']])
 
 		## Beak
 		disp_vol = 150.

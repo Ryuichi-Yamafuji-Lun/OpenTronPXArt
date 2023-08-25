@@ -58,9 +58,10 @@ def run(protocol: protocol_api.ProtocolContext):
 		pipette.aspirate( asp_vol, palette[inkwells['yellow']] )
 		residual_vol = asp_vol
 		fill('body', 'yellow', disp_vol, residual_vol)
+		return residual_vol
 
     # Orange ink
-	def orange_ink():
+	def orange_ink(residual_vol):
 		## Start
 		yellow_ink_total = 360. - residual_vol
 		## Create Orange
@@ -133,7 +134,7 @@ def run(protocol: protocol_api.ProtocolContext):
 		pipette.drop_tip()
 	
 	# Main
-	yellow_ink()
-	orange_ink()
+	residual_vol = yellow_ink()
+	orange_ink(residual_vol)
 	black_ink()
 	

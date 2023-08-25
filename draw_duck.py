@@ -96,10 +96,12 @@ def run(protocol: protocol_api.ProtocolContext):
 		pipette.aspirate( asp_vol, palette[inkwells['orange']] )
 		residual_vol = asp_vol
 		fill('beak', 'orange', disp_vol, residual_vol)
+		
 		## Feet
 		pipette.aspirate( asp_vol, palette[inkwells['orange']] )
 		residual_vol = asp_vol
 		fill('feet', 'orange', disp_vol, residual_vol)
+		
 		# End
 		pipette.drop_tip()
 
@@ -127,7 +129,6 @@ def run(protocol: protocol_api.ProtocolContext):
 		## Mix
 		for well in wells['eyes']:
 			pipette.mix(2, 120, canvas[well])
-		pipette.drop_tip()
 
 		## End
 		pipette.drop_tip()

@@ -41,7 +41,7 @@ def run(protocol: protocol_api.ProtocolContext):
 	def fill(part, color, disp_vol, residual_vol, change):
 		for well in wells[part]:
 			if residual_vol < disp_vol:
-				check_color(change)
+				check_color(change, color, residual_vol)
 				residual_vol = asp_vol
 
 			pipette.dispense( disp_vol, canvas[well] )

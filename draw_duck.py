@@ -38,11 +38,10 @@ def run(protocol: protocol_api.ProtocolContext):
 
 	asp_vol = 300.
 
-	def fill(part, color, disp_vol,residual_vol, change):
+	def fill(part, color, disp_vol, residual_vol, change):
 		for well in wells[part]:
 			if residual_vol < disp_vol:
 				check_color(change)
-				pipette.aspirate( asp_vol - residual_vol, palette[inkwells[color]] )
 				residual_vol = asp_vol
 
 			pipette.dispense( disp_vol, canvas[well] )
@@ -52,10 +51,14 @@ def run(protocol: protocol_api.ProtocolContext):
 		for well in wells[part]:
 			pipette.mix(2, 120, canvas[well])
 	
-	def check_color(change):
+	def check_color(change, color, residual_vol):
 		if change == True:
 			pipette.drop_tip()
 			pipette.pick_up_tip()
+			pipette.aspirate( asp_vol, palette[inkwells[color]] )
+		else:
+			pipette.aspirate( asp_vol - residual_vol, palette[inkwells[color]] )
+			
 
 	# Yellow ink
 	def yellow_ink():

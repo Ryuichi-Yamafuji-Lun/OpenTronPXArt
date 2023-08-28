@@ -52,12 +52,13 @@ def run(protocol: protocol_api.ProtocolContext):
 			pipette.mix(2, 120, canvas[well])
 	
 	def check_color(change, color, residual_vol):
-		if change == True:
+		if change:
 			pipette.drop_tip()
 			pipette.pick_up_tip()
-			pipette.aspirate( asp_vol, palette[inkwells[color]] )
+			pipette.aspirate(asp_vol, palette[inkwells[color]])
 		else:
-			pipette.aspirate( asp_vol - residual_vol, palette[inkwells[color]] )
+			remaining_ink = asp_vol - residual_vol
+			pipette.aspirate(remaining_ink, palette[inkwells[color]])
 			
 
 	# Yellow ink

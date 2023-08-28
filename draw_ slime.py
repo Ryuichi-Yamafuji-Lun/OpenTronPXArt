@@ -17,7 +17,7 @@ def run(protocol: protocol_api.ProtocolContext):
 	pipette   = protocol.load_instrument('p300_single_gen2', 'left', tip_racks=[tiprack])
 
 	# Inks prepared in 6-well plate
-	inkwells = dict(red = 'A1', green = 'A2', blue = 'A3')
+	inkwells = dict(red = 'A1', green = 'A2', blue = 'A3', dispense = 'B1')
 
 	wells = dict(
 
@@ -41,117 +41,91 @@ def run(protocol: protocol_api.ProtocolContext):
 
 	asp_vol = 300.
 
-	# Blue ink: Start
-	pipette.pick_up_tip()
-	residual_vol = 0.
+	def fill(part, color, disp_vol, residual_vol, change):
+		for well in wells[part]:
+			if residual_vol < disp_vol:
+				check_color(change, color, residual_vol)
+				residual_vol = asp_vol
 
-	## Body
-	disp_vol = 50.
+			pipette.dispense( disp_vol, canvas[well] )
+			residual_vol -= disp_vol
+			
+	def check_color(change, color, residual_vol):
+			if change:
+				pipette.drop_tip()
+				pipette.pick_up_tip()
+				pipette.aspirate(asp_vol, palette[inkwells[color]])
+			else:
+				remaining_ink = asp_vol - residual_vol
+				pipette.aspirate(remaining_ink, palette[inkwells[color]])
 
-	pipette.aspirate( asp_vol, palette[inkwells['blue']] )
-	residual_vol = asp_vol
+	def mix(part):
+		pipette.dispense(asp_vol, palette[inkwells['dispense']])
+		for well in wells[part]:
+			pipette.mix(2, 120, canvas[well])
+			
 
-	for well in wells['body']:
-		if residual_vol < disp_vol:
-			pipette.aspirate( asp_vol - residual_vol, palette[inkwells['blue']] )
-			residual_vol = asp_vol
 
-		pipette.dispense( disp_vol, canvas[well] )
-		residual_vol -= disp_vol
+	def main():
+		# Blue ink: Start
+		pipette.pick_up_tip()
+		residual_vol = 0.
 
-	## Eyes
-	disp_vol = 50.
+		## Body
+		disp_vol = 50.
 
-	for well in wells['eyes']:
-		if residual_vol < disp_vol:
-			pipette.aspirate( asp_vol - residual_vol, palette[inkwells['blue']] )
-			residual_vol = asp_vol
+		pipette.aspirate( asp_vol, palette[inkwells['blue']] )
+		residual_vol = asp_vol
 
-		pipette.dispense( disp_vol, canvas[well] )
-		residual_vol -= disp_vol
+		fill('body','blue',disp_vol,residual_vol, change=False)
 
-	pipette.drop_tip()
-	# Blue ink: End
+		## Eyes
+		disp_vol = 50.
 
-	# Red ink: Start
-	pipette.pick_up_tip()
-	residual_vol = 0.
+		fill('eyes','blue',disp_vol,residual_vol, change=False)
 
-	## Mouth
-	disp_vol = 150.
+		pipette.drop_tip()
+		# Blue ink: End
 
-	pipette.aspirate( asp_vol, palette[inkwells['red']] )
-	residual_vol = asp_vol
+		# Red ink: Start
+		pipette.pick_up_tip()
+		residual_vol = 0.
 
-	for well in wells['mouth']:
-		if residual_vol < disp_vol:
-			pipette.aspirate( asp_vol - residual_vol, palette[inkwells['red']] )
-			residual_vol = asp_vol
+		## Mouth
+		disp_vol = 150.
 
-		pipette.dispense( disp_vol, canvas[well] )
-		residual_vol -= disp_vol
+		pipette.aspirate( asp_vol, palette[inkwells['red']] )
+		residual_vol = asp_vol
 
-	## Eyes
-	disp_vol = 50.
+		fill('mouth','red',disp_vol,residual_vol, change=False)
 
-	for well in wells['eyes']:
-		if residual_vol < disp_vol:
-			pipette.drop_tip()
-			pipette.pick_up_tip()
-			pipette.aspirate( asp_vol, palette[inkwells['red']] )
-			residual_vol = asp_vol
+		## Eyes
+		disp_vol = 50.
 
-		pipette.dispense( disp_vol, canvas[well] )
-		residual_vol -= disp_vol
+		fill('eyes','red',disp_vol,residual_vol, change=True)
 
-	## Body
-	disp_vol = 100.
+		## Body
+		disp_vol = 100.
 
-	for well in wells['body']:
-		if residual_vol < disp_vol:
-			pipette.drop_tip()
-			pipette.pick_up_tip()
-			pipette.aspirate( asp_vol, palette[inkwells['red']] )
-			residual_vol = asp_vol
+		fill('body','red',disp_vol,residual_vol, change=True)
+		mix('body')
+		pipette.drop_tip()
+		# Red ink: End
 
-		pipette.dispense( disp_vol, canvas[well] )
-		residual_vol -= disp_vol
+		# Green ink: Start
+		pipette.pick_up_tip()
+		residual_vol = 0.
 
-	pipette.drop_tip()
-	# Red ink: End
+		## Eyes
+		disp_vol = 50.
 
-	# Green ink: Start
-	pipette.pick_up_tip()
-	residual_vol = 0.
+		pipette.aspirate( asp_vol, palette[inkwells['green']] )
+		residual_vol = asp_vol
 
-	## Eyes
-	disp_vol = 50.
+		fill('eyes','green',disp_vol,residual_vol, change=True)
+		mix('eyes')
 
-	pipette.aspirate( asp_vol, palette[inkwells['green']] )
-	residual_vol = asp_vol
+		pipette.drop_tip()
+		# Green ink: End
 
-	for well in wells['eyes']:
-		if residual_vol < disp_vol:
-			pipette.drop_tip()
-			pipette.pick_up_tip()
-			pipette.aspirate( asp_vol, palette[inkwells['green']] )
-			residual_vol = asp_vol
-
-		pipette.dispense( disp_vol, canvas[well] )
-		residual_vol -= disp_vol
-
-	pipette.drop_tip()
-	# Green ink: End
-
-	# Mix
-	## Body
-	pipette.pick_up_tip()
-	for well in wells['body']:
-		pipette.mix(2, 120, canvas[well])
-	pipette.drop_tip()
-
-	## Eyes
-	pipette.pick_up_tip()
-	for well in wells['eyes']:
-		pipette.mix(2, 120, canvas[well])
-	pipette.drop_tip()
+	main()

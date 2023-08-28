@@ -31,7 +31,7 @@ def run(protocol: protocol_api.ProtocolContext):
 		eyes = ['B5'],
 		
         feet_and_beak = [
-			'C2', 'C3'
+			'C2', 'C3',
             'G6',
             'H5', 'H6'],
 	)
@@ -81,7 +81,7 @@ def run(protocol: protocol_api.ProtocolContext):
 		# Start
 		pipette.pick_up_tip()
 		residual_vol = 0.
-		
+
 		## Eye
 		disp_vol = 50.
 		pipette.aspirate( asp_vol, palette[inkwells['red']] )

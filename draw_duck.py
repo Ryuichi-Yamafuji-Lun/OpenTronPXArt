@@ -17,7 +17,7 @@ def run(protocol: protocol_api.ProtocolContext):
 	pipette   = protocol.load_instrument('p300_single_gen2', 'left', tip_racks=[tiprack])
 
 	# Inks prepared in 6-well plate
-	inkwells = dict(red = 'A1', green = 'A2', blue = 'A3', yellow = 'B1', orange = 'B2')
+	inkwells = dict(red = 'A1', green = 'A2', blue = 'A3', yellow = 'B1')
 
 	wells = dict(
 		body = [
@@ -28,114 +28,102 @@ def run(protocol: protocol_api.ProtocolContext):
 			'E4', 'E5', 'E6', 'E7', 'E8', 'E9', 
 			'F5', 'F6', 'F7', 'F8'],
 
-		beak = ['C2', 'C3'],
-
 		eyes = ['B5'],
 		
-        feet = [
+        feet_and_beak = [
+			'C2', 'C3'
             'G6',
             'H5', 'H6'],
 	)
 
 	asp_vol = 300.
 
-	def fill(part, color, disp_vol,residual_vol):
+	def fill(part, color, disp_vol,residual_vol, change):
 		for well in wells[part]:
 			if residual_vol < disp_vol:
+				check_color(change)
 				pipette.aspirate( asp_vol - residual_vol, palette[inkwells[color]] )
 				residual_vol = asp_vol
 
 			pipette.dispense( disp_vol, canvas[well] )
 			residual_vol -= disp_vol
 
+	def mix(part):
+		for well in wells[part]:
+			pipette.mix(2, 120, canvas[well])
+	
+	def check_color(change):
+		if change == True:
+			pipette.drop_tip()
+			pipette.pick_up_tip()
+
 	# Yellow ink
 	def yellow_ink():
 		## Start
 		pipette.pick_up_tip()
 		residual_vol = 0.
+
 		## Body
 		disp_vol = 150.
 		pipette.aspirate( asp_vol, palette[inkwells['yellow']] )
 		residual_vol = asp_vol
-		fill('body', 'yellow', disp_vol, residual_vol)
-		return residual_vol
+		fill('body', 'yellow', disp_vol, residual_vol, change = False)
 
-    # Orange ink
-	def orange_ink(residual_vol):
-		## Start
-		yellow_ink_total = 360. - residual_vol
-		## Create Orange
-		### Yellow
-		pipette.dispense( residual_vol, palette[inkwells['orange']])
-		residual_vol = 0.
-		yellow_asp_vol = 70.
-		while yellow_ink_total > 0:
-			pipette.aspirate( yellow_asp_vol, palette[inkwells['yellow']] )
-			pipette.dispense( yellow_asp_vol, palette[inkwells['orange']] )
-			yellow_ink_total -= yellow_asp_vol
+		## Feet and Beak 
+		disp_vol = 90
+		fill('feet_and_beak', 'yellow', disp_vol, residual_vol, change = False)
 
+		## End
 		pipette.drop_tip()
 
-		### Red
-		red_ink_total = 540.
-		red_asp_vol = 180.
+    # red ink
+	def red_ink():
+		# Start
 		pipette.pick_up_tip()
-		while red_ink_total > 0:
-			pipette.aspirate( red_asp_vol, palette[inkwells['red']] )
-			pipette.dispense( red_asp_vol, palette[inkwells['orange']] )
-			red_ink_total -= red_asp_vol
-
-		## Eye: red
-		disp_vol = 50
-		fill('eyes', 'red', disp_vol, residual_vol)
-
-		## Mix Master
-		pipette.mix( 4, 100, palette[inkwells['orange']])
-
-		## Beak
-		disp_vol = 150.
-		pipette.aspirate( asp_vol, palette[inkwells['orange']] )
-		residual_vol = asp_vol
-		fill('beak', 'orange', disp_vol, residual_vol)
-
-		## Feet
-		pipette.aspirate( asp_vol, palette[inkwells['orange']] )
-		residual_vol = asp_vol
-		fill('feet', 'orange', disp_vol, residual_vol)
+		residual_vol = 0.
 		
-		# End
-		pipette.drop_tip()
+		## Eye
+		disp_vol = 50.
+		pipette.aspirate( asp_vol, palette[inkwells['red']] )
+		fill('eyes', 'red', disp_vol, residual_vol, change = False)
 
+		## Feet and Beak (ORANGE INK)
+		disp_vol = 60
+		fill('feet_and_beak', 'red', disp_vol, residual_vol, change = True)
+		mix('feet_and_beak')
+
+		## End
+		pipette.drop_tip()
+		
     # Black ink
 	def black_ink():
 		## Start
 		pipette.pick_up_tip()
 		residual_vol = 0.
-		asp_vol = 50
-		## Eye
+		asp_vol = 100.
 		disp_vol = 50.
+		## Eye
 		## Green
 		pipette.aspirate( asp_vol, palette[inkwells['green']] )
 		residual_vol = asp_vol
-		fill('eyes', 'green', disp_vol, residual_vol)
+		fill('eyes', 'green', disp_vol, residual_vol, change = False)
 		pipette.drop_tip()
 		
 		## Blue
 		pipette.pick_up_tip()
 		residual_vol = 0.
-		pipette.aspirate( asp_vol, palette[inkwells['blue']] )
+		pipette.aspirate( asp_vol, palette[inkwells['blue']], change = False )
 		residual_vol = asp_vol
-		fill('eyes', 'blue', disp_vol, residual_vol)
+		fill('eyes', 'blue', disp_vol, residual_vol, change = False)
 
 		## Mix
-		for well in wells['eyes']:
-			pipette.mix(2, 120, canvas[well])
+		mix('eyes')
 
 		## End
 		pipette.drop_tip()
 	
-	# Main
-	residual_vol = yellow_ink()
-	orange_ink(residual_vol)
+	# Main (ORDER MATTERS)
+	yellow_ink()
+	red_ink()
 	black_ink()
 	

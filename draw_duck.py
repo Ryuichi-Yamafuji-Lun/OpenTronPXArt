@@ -4,7 +4,7 @@ from opentrons import protocol_api
 
 metadata = {
 	'protocolName': 'Draw Duck',
-	'author': 'Lianne <knsktzkml@gmail.com>, Katelyn <ynaito@sfc.keio.ac.jp>, Ryuichi <ryuichi.y.lun@keio.jp>',
+	'author': 'Ryuichi <ryuichi.y.lun@keio.jp>',
 	'apiLevel': '2.0'
 }
 
